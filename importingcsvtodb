@@ -1,0 +1,143 @@
+import os
+import pandas as pd
+import mysql.connector
+
+# MySQL database configuration
+mysql_config = {
+    'host': 'localhost',
+    'database': 'citigroupmortageloantrust',
+    'user': 'root',
+    'password': 'Devas@01'
+}
+
+# Parent directory path containing CSV files in multiple folders
+parent_directory = r'c:/Users/USER/Desktop/CitiGroup/Enhanced Loan-Level Data/'
+
+# SQL statement to create the table
+create_table_sql = """
+CREATE TABLE IF NOT EXISTS loandata2024 (
+    `Transaction ID` VARCHAR(255),
+    `Investor Loan #` VARCHAR(255),
+    `Servicer Loan #` VARCHAR(255),
+    `Pool #` VARCHAR(255),
+    `SubPool #` VARCHAR(255),
+    `Distribution Date` VARCHAR(8),
+    `Paid To Date` VARCHAR(10),
+    `Advance Paid To Date` VARCHAR(10),
+    `Scheduled Gross Interest` DECIMAL(12,2),
+    `Master Servicing Fee` DECIMAL(12,2),
+    `Servicing Fee` DECIMAL(12,2),
+    `Trustee Fee` DECIMAL(12,2),
+    `Insurance Fee` DECIMAL(12,2),
+    `Special Servicing Fee` DECIMAL(12,2),
+    `Scheduled Net Interest` DECIMAL(12,2),
+    `Other Fees` DECIMAL(12,2),
+    `Beginning Scheduled Balance` DECIMAL(12,2),
+    `Ending Scheduled Balance` DECIMAL(12,2),
+    `Beginning Actual Balance` DECIMAL(12,2),
+    `Ending Actual Balance` DECIMAL(12,2),
+    `Scheduled Principal` DECIMAL(12,2),
+    `Curtailments` DECIMAL(12,2),
+    `Curtailment Adjustments` DECIMAL(12,2),
+    `Other Principal Adjustments` DECIMAL(12,2),
+    `Curtailment Date` VARCHAR(8),
+    `PIF Type` VARCHAR(255),
+    `PIF Date` VARCHAR(12),
+    `Prepayment` DECIMAL(12,2),
+    `Repurchase Principal` DECIMAL(12,2),
+    `Liquidation Principal` DECIMAL(12,2),
+    `Principal Recoveries` DECIMAL(12,2),
+    `Interest Recoveries` DECIMAL(12,2),
+    `Total Recoveries` DECIMAL(12,2),
+    `Principal Losses` DECIMAL(12,2),
+    `Interest Losses` DECIMAL(12,2),
+    `Total Losses` DECIMAL(12,2),
+    `PPIS` DECIMAL(12,2),
+    `PPIE` DECIMAL(12,2),
+    `SSCRA Shorfalls` DECIMAL(12,2),
+    `Other Interest Adjustments` DECIMAL(12,2),
+    `Principal Advances` DECIMAL(12,2),
+    `Interest Advances` DECIMAL(12,2),
+    `Stop Advance Flag` VARCHAR(255),
+    `Stop Advance Principal` DECIMAL(12,2),
+    `Stop Advance Interest` DECIMAL(12,2),
+    `Total Stop Advance` DECIMAL(12,2),
+    `Current P&I Constant` VARCHAR(255),
+    `Special Hazard Losses` DECIMAL(12,2),
+    `Fraud Losses` DECIMAL(12,2),
+    `Bankruptcy Losses` DECIMAL(12,2),
+    `Delinquency Status` VARCHAR(255),
+    `REO Date` VARCHAR(8),
+    `REO Balance` DECIMAL(12,2),
+    `REO Book Value` DECIMAL(12,2),
+    `Loan Status` VARCHAR(255),
+    `Neg Am` VARCHAR(255),
+    `Prepay Penalty/YM` VARCHAR(255),
+    `Prepay Penalty/YM Waived` VARCHAR(255),
+    `Current Note Rate` DECIMAL(12,2),
+    `Next Note Rate` DECIMAL(12,2),
+    `Current Net Note Rate` DECIMAL(12,2),
+    `Next Net Note Rate` DECIMAL(12,2),
+    `Next Rate Adjustment Date` VARCHAR(8),
+    `Next Payment Adjustment Date` VARCHAR(8),
+    `Remaining Term` VARCHAR(255),
+    `Modification Flag` VARCHAR(255),
+    `Modification Date` VARCHAR(12),
+    `Beginning Deferred Balance` DECIMAL(12,2),
+    `Ending Deferred Balance` DECIMAL(12,2)
+);
+"""
+
+# SQL statement to drop the table if it exists
+drop_table_sql = "DROP TABLE IF EXISTS loandata2024"
+
+try:
+    conn = mysql.connector.connect(**mysql_config)
+    cursor = conn.cursor()
+    # Drop the table if it exists
+    cursor.execute(drop_table_sql)
+    print("Table 'loandata2024' dropped successfully.")
+
+    # Create the table
+    cursor.execute(create_table_sql)
+    print("Table 'loandata2024' created successfully.")
+
+    # Iterate over folders in the parent directory
+    for foldername in os.listdir(parent_directory):
+        folder_path = os.path.join(parent_directory, foldername)
+        if os.path.isdir(folder_path):
+            print(f"Processing folder '{foldername}'")
+            # Iterate over files in the folder
+            for filename in os.listdir(folder_path):
+                if filename.endswith(".csv"):
+                    file_path = os.path.join(folder_path, filename)
+                    try:
+                        # Read CSV file into a pandas DataFrame
+                        df = pd.read_csv(file_path)
+
+                        sql = "INSERT INTO loandata2024 (`Transaction ID`, `Investor Loan #`, `Servicer Loan #`, `Pool #`, `SubPool #`,`Distribution Date`, `Paid To Date`, `Advance Paid To Date`, `Scheduled Gross Interest`,`Master Servicing Fee`, `Servicing Fee`, `Trustee Fee`, `Insurance Fee`,`Special Servicing Fee`, `Scheduled Net Interest`, `Other Fees`,`Beginning Scheduled Balance`, `Ending Scheduled Balance`, `Beginning Actual Balance`,`Ending Actual Balance`, `Scheduled Principal`, `Curtailments`, `Curtailment Adjustments`,`Other Principal Adjustments`, `Curtailment Date`, `PIF Type`, `PIF Date`, `Prepayment`,`Repurchase Principal`, `Liquidation Principal`, `Principal Recoveries`, `Interest Recoveries`,`Total Recoveries`, `Principal Losses`, `Interest Losses`, `Total Losses`, `PPIS`, `PPIE`,`SSCRA Shorfalls`, `Other Interest Adjustments`, `Principal Advances`, `Interest Advances`,`Stop Advance Flag`, `Stop Advance Principal`, `Stop Advance Interest`, `Total Stop Advance`,`Current P&I Constant`, `Special Hazard Losses`, `Fraud Losses`, `Bankruptcy Losses`,`Delinquency Status`, `REO Date`, `REO Balance`, `REO Book Value`, `Loan Status`,`Neg Am`, `Prepay Penalty/YM`, `Prepay Penalty/YM Waived`, `Current Note Rate`,`Next Note Rate`, `Current Net Note Rate`, `Next Net Note Rate`, `Next Rate Adjustment Date`,`Next Payment Adjustment Date`, `Remaining Term`, `Modification Flag`, `Modification Date`, `Beginning Deferred Balance`, `Ending Deferred Balance`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,%s, %s, %s, %s, %s, %s, %s)"
+
+                        # Insert DataFrame records into MySQL database
+                        for _, row in df.iterrows():
+                            # Check if "Beginning Deferred Balance" and "Ending Deferred Balance" are present in the DataFrame
+                            if "Beginning Deferred Balance" not in df.columns:
+                                row["Beginning Deferred Balance"] = None
+                            if "Ending Deferred Balance" not in df.columns:
+                                row["Ending Deferred Balance"] = None
+                            cursor.execute(sql, tuple(row))
+
+                        print(f"Data from file '{filename}' inserted successfully into MySQL database.")
+                    except Exception as e:
+                        print(f"Error processing file '{filename}': {e}")
+
+    # Commit changes and close connection
+    conn.commit()
+    print("All data inserted successfully into MySQL database.")
+
+except mysql.connector.Error as err:
+    print("MySQL Error:", err)
+
+finally:
+    if 'conn' in locals() and conn.is_connected():
+        cursor.close()
+        conn.close()
